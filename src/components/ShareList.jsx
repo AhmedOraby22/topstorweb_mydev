@@ -1,5 +1,5 @@
 import React from 'react';
-import { FolderOpen, HardDrive, RotateCcw, Trash2 } from 'lucide-react';
+import { FolderOpen, HardDrive, Plug, RotateCcw, Trash2, Unplug } from 'lucide-react';
 import Dropdown from './Common/Dropdown';
 import Panel from './Common/Panel';
 import SubmitBar from './Common/SubmitBar';
@@ -271,7 +271,41 @@ const InitiatorsCell = ({ vol, pend, onStage, onRevert }) => {
     );
 };
 
-const ShareList = ({ volumes, groups = [], onSubmit, queueStatus, title, subtitle, count, emptyText, icon: Icon = HardDrive, showGroups = true, variant = 'share' }) => {
+// Live (plugged) or not: a replicated volume arrives on the receiving cluster with statusmount "disabled" (not live) until
+// it is activated here (test 21 steps 18 and 20: red plug = not live, a press activates it and it turns green).  The old
+// jQuery page had this control (Qcifs.js activethis -> volumes/volumeactive); the new design had dropped it.
+export const volumeLive = (vol) => String(vol.statusmount || '').includes('active') && (!vol.runtime || vol.runtime === 'serviceok');
+
+const PlugButton = ({ vol, onActivate }) => {
+    const live = volumeLive(vol);
+    const [busy, setBusy] = React.useState(false);
+    // the list is reloaded after the call; until the new state arrives the button stays busy
+    React.useEffect(() => { setBusy(false); }, [vol.statusmount, vol.runtime]);
+    const click = async () => {
+        const next = live ? 'disabled' : 'active';
+        const what = live ? 'Deactivate (unplug)' : 'Activate (plug)';
+        if (!window.confirm(`${what} the volume ${vol.name.split('_')[0]}?`)) return;
+        setBusy(true);
+        const ok = await onActivate(vol, next);
+        if (ok === false) setBusy(false);
+    };
+    const Icon = live ? Plug : Unplug;
+    return (
+        <button
+            type="button"
+            onClick={click}
+            disabled={busy}
+            aria-label={live ? 'Volume is live (plugged); click to unplug' : 'Volume is not live (unplugged); click to plug it in'}
+            title={busy ? 'Waiting for the volume to change state' : live ? 'Live (plugged). Click to unplug' : 'Not live (unplugged). Click to activate'}
+            data-status={live ? 'active' : 'disabled'}
+            className={`mr-1 inline-flex h-7 w-7 items-center justify-center rounded-md border transition-colors ${busy ? 'animate-pulse cursor-wait' : ''} ${live ? 'border-success-100 bg-success-50 text-success-600 hover:bg-success-100' : 'border-danger-100 bg-danger-50 text-danger-600 hover:bg-danger-100'}`}
+        >
+            <Icon size={14} />
+        </button>
+    );
+};
+
+const ShareList = ({ volumes, groups = [], onSubmit, queueStatus, title, subtitle, count, emptyText, icon: Icon = HardDrive, showGroups = true, variant = 'share', onActivate }) => {
     const iscsi = variant === 'iscsi';
     const { query, setQuery, visible, filtering } = useRowFilter(volumes);
     const { sort, toggle } = useSort();
@@ -307,6 +341,7 @@ const ShareList = ({ volumes, groups = [], onSubmit, queueStatus, title, subtitl
         ip: (v) => (pending[v.name]?.address !== undefined ? pending[v.name].address : v.ipaddress),
         init: (v) => String(v.initiators || ''),
         groups: (v) => groupNames(volGroupIds(v, groups), groups).join(' '),
+        status: (v) => (volumeLive(v) ? 1 : 0),
     });
 
     const pendingCount = countPending(pending);
@@ -343,7 +378,7 @@ const ShareList = ({ volumes, groups = [], onSubmit, queueStatus, title, subtitl
                             <SortTh sortKey="ip" sort={sort} onToggle={toggle} className={th}>{iscsi ? 'IP:Port' : 'Access'}</SortTh>
                             {iscsi && <SortTh sortKey="init" sort={sort} onToggle={toggle} className={`${th} min-w-[220px]`}>Allowed Initiators</SortTh>}
                             {showGroups && <SortTh sortKey="groups" sort={sort} onToggle={toggle} className={`${th} min-w-[210px]`}>Groups</SortTh>}
-                            <th className={`${th} text-right`}>Actions</th>
+                            {onActivate && !iscsi ? <SortTh sortKey="status" sort={sort} onToggle={toggle} className={`${th} text-right`}>Actions</SortTh> : <th className={`${th} text-right`}>Actions</th>}
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-border">
@@ -382,7 +417,8 @@ const ShareList = ({ volumes, groups = [], onSubmit, queueStatus, title, subtitl
                                             <GroupsCell vol={vol} groups={groups} pend={pend} onStage={(c) => stage(vol.name, c)} onRevert={(k) => unstage(vol.name, k)} />
                                         </td>
                                     )}
-                                    <td className="px-2.5 py-1 text-right">
+                                    <td className="whitespace-nowrap px-2.5 py-1 text-right">
+                                        {onActivate && !iscsi && !removed && <PlugButton vol={vol} onActivate={onActivate} />}
                                         {removed ? (
                                             <button
                                                 type="button"

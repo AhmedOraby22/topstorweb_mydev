@@ -27,6 +27,11 @@ export const deleteVolume = (data) => {
     return api.post('api/v1/volumes/volumedel', data);
 };
 
+export const activateVolume = (data) => {
+    // Expected data: { name, active: 'active' | 'disabled' } (plug in / unplug a volume, e.g. a replicated one on the DR cluster)
+    return api.post('api/v1/volumes/volumeactive', data);
+};
+
 export const fetchVolumeStats = () => {
     return api.get('api/v1/volumes/stats');
 };

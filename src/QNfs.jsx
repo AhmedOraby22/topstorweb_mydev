@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { AlertTriangle, FolderPlus } from 'lucide-react';
-import { fetchVolumesInfo, fetchGroupList, createVolume, updateVolume, deleteVolume, fetchVolumeStats } from './api/volumes';
+import { fetchVolumesInfo, fetchGroupList, createVolume, updateVolume, deleteVolume, activateVolume, fetchVolumeStats } from './api/volumes';
 import { fetchPoolsInfo } from './api/pools';
 import Button from './components/Common/Button';
 import Input from './components/Common/Input';
@@ -140,6 +140,18 @@ const QNfs = () => {
         }
     };
 
+    // the plug button of a row: plug in (activate) or unplug a volume, e.g. a replicated one on the DR cluster (test 21 step 20)
+    const handleActivate = async (vol, active) => {
+        try {
+            await activateVolume({ name: vol.name, active });
+            loadData();
+            return true;
+        } catch (err) {
+            setError(err?.response?.data?.message || `Failed to ${active === 'active' ? 'activate' : 'unplug'} the volume`);
+            return false;
+        }
+    };
+
     return (
                 <div>
                     <div className="rounded-none border border-border bg-surface p-2 shadow-sm">
@@ -275,6 +287,7 @@ const QNfs = () => {
                                     volumes={volumes}
                                     groups={groups}
                                     onSubmit={handleSubmit}
+                                    onActivate={handleActivate}
                                 />
                             </div>
                         </div>
