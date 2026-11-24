@@ -130,7 +130,11 @@ const NotificationPoller = () => {
             if (!notif.msgbody) return;
             if (notif.time === lastNotif.current.time && notif.msgcode === lastNotif.current.msgcode) return;
 
+            // QX-006 step 6: the first answer after a page load is the notification that was already there; it is only
+            // remembered, not shown again (a reload replayed the last toast)
+            const firstPoll = lastNotif.current.time === 'init';
             lastNotif.current = { time: notif.time, msgcode: notif.msgcode };
+            if (firstPoll) return;
             // pages that wait for a backend result (e.g. QDisks pool delete -> DGfa*) listen to this
             window.dispatchEvent(new CustomEvent('app-notification', { detail: notif }));
 

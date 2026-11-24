@@ -46,7 +46,9 @@ function App() {
         validateToken(token)
             .then((res) => {
                 const response = res.data?.response;
-                if (response && response !== 'baduser' && !String(response).includes('baduser')) {
+                // only a user name (a plain string) is a valid answer: a nested {"response":"baduser"} became
+                // "[object Object]" and kept a dead session logged in (QX-006 step 6)
+                if (typeof response === 'string' && response && response !== 'baduser' && !response.includes('baduser')) {
                     setIsAuthenticated(true);
                 } else {
                     // Token is stale/invalid — clear it and show login
