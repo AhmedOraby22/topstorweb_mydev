@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { UserPlus, Users } from 'lucide-react';
 import Button from './Common/Button';
 import Input from './Common/Input';
@@ -15,19 +15,32 @@ const AddGroupForm = ({ users, onAdd }) => {
         setFormData(prev => ({ ...prev, [id]: value }));
     };
 
-    const handleSubmit = (e) => {
+    // QX-003 step 8: the button locks at the first click until the request has answered (a ref, so clicks that arrive
+    // before the next render are dropped too): 5 fast clicks send one request
+    const [busy, setBusy] = useState(false);
+    const busyRef = useRef(false);
+
+    const handleSubmit = async (e) => {
         e.preventDefault();
+        if (busyRef.current) return;
+        busyRef.current = true;
+        setBusy(true);
         const data = {
             name: formData.Group,
             users: formData.GroupUsers.join(','),
             Myname: 'mezo'
         };
-        onAdd(data);
-        // Reset form
-        setFormData({ Group: '', GroupUsers: [] });
+        try {
+            await onAdd(data);
+            // Reset form
+            setFormData({ Group: '', GroupUsers: [] });
+        } finally {
+            busyRef.current = false;
+            setBusy(false);
+        }
     };
 
-    const canSubmit = formData.Group.length > 2;
+    const canSubmit = formData.Group.length > 2 && !busy;
 
     return (
         <Panel
@@ -59,8 +72,8 @@ const AddGroupForm = ({ users, onAdd }) => {
                 </div>
 
                 <div className="flex justify-end border-t border-border pt-4">
-                    <Button type="submit" className="w-full sm:w-auto" disabled={!canSubmit} icon={<UserPlus size={15} />}>
-                        Create Group
+                    <Button type="submit" className="w-full sm:w-auto" disabled={!canSubmit} aria-busy={busy} icon={<UserPlus size={15} />}>
+                        {busy ? 'Creating...' : 'Create Group'}
                     </Button>
                 </div>
             </form>
