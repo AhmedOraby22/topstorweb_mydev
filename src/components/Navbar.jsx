@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Bell, ChevronRight, ClipboardList, Key, LogOut, Maximize2, Menu, X } from 'lucide-react';
 import { changePassword } from '../api/users';
+import { logout as apiLogout } from '../api/auth';
 import { syncNow } from '../api/nodes';
 import { fetchLogs } from '../api/logs';
 import { fetchCommandLog } from '../api/commandlog';
@@ -266,6 +267,11 @@ const Navbar = ({ sectionTitle }) => {
                             <div className="absolute right-0 mt-2 w-52 overflow-hidden rounded-xl border border-border bg-surface p-1.5 shadow-lg">
                                 <button
                                     onClick={() => {
+                                        // QX-001 step 12: end the session on the server too; before, only the browser token was
+                                        // cleared and the old token still answered login/test with the user. The page does not
+                                        // wait for the reply: the browser token goes at once, a failed call changes nothing here.
+                                        const token = localStorage.getItem('token');
+                                        if (token && token !== '0') apiLogout(token).catch(() => {});
                                         localStorage.removeItem('token');
                                         localStorage.setItem('token', '0');
                                         window.dispatchEvent(new Event('storage'));
