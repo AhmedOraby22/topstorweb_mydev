@@ -158,7 +158,8 @@ const QSnapshots = () => {
                     <div className="container-fluid">
                         <div className="flex justify-between items-center mb-8">
                             <div>
-                                <p className="text-lg text-gray-500 font-medium tracking-tight">Point-in-time volume recovery and scheduling</p>
+                                <h1 className="text-2xl font-semibold tracking-tight text-gray-900">Snapshots</h1>
+                                <p className="mt-1 text-sm text-gray-500">Point-in-time volume recovery and scheduling</p>
                             </div>
                             <div className="flex gap-3">
                                 <Button
