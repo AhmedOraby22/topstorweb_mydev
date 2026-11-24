@@ -181,18 +181,19 @@ const QUpdates = () => {
                                         <p className="text-sm text-gray-500">Download updates from remote or local sources</p>
                                     </div>
                                 </div>
-                                <div className="inline-flex gap-2 rounded-full border border-border bg-surface-muted p-1">
+                                {/* QX-008 step 6: fits a 375 px phone (it pushed the page 35 px wide) */}
+                                <div className="inline-flex max-w-full flex-wrap gap-1 rounded-full border border-border bg-surface-muted p-1 sm:gap-2">
                                     <button
                                         type="button"
                                         onClick={() => setDownloadMethod('url')}
-                                        className={`rounded-full px-5 py-2 text-xs font-semibold uppercase tracking-wide transition-colors ${downloadMethod === 'url' ? 'bg-brand-600 text-white' : 'text-gray-600 hover:bg-surface hover:text-brand-600'}`}
+                                        className={`rounded-full px-3 py-2 text-xs font-semibold uppercase tracking-wide transition-colors sm:px-5 ${downloadMethod === 'url' ? 'bg-brand-600 text-white' : 'text-gray-600 hover:bg-surface hover:text-brand-600'}`}
                                     >
                                         Public URL
                                     </button>
                                     <button
                                         type="button"
                                         onClick={() => setDownloadMethod('share')}
-                                        className={`rounded-full px-5 py-2 text-xs font-semibold uppercase tracking-wide transition-colors ${downloadMethod === 'share' ? 'bg-brand-600 text-white' : 'text-gray-600 hover:bg-surface hover:text-brand-600'}`}
+                                        className={`rounded-full px-3 py-2 text-xs font-semibold uppercase tracking-wide transition-colors sm:px-5 ${downloadMethod === 'share' ? 'bg-brand-600 text-white' : 'text-gray-600 hover:bg-surface hover:text-brand-600'}`}
                                     >
                                         Network Share
                                     </button>

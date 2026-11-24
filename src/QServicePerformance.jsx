@@ -428,9 +428,10 @@ const QServicePerformance = () => {
                 <div className="p-5">
                     <div className="rounded-xl border border-border bg-surface p-4 shadow-sm">
                         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                            <div>
+                            <div className="min-w-0">
                                 <h1 className="text-xl font-semibold tracking-tight text-gray-900">Service Performance</h1>
-                                <div className="mt-2 inline-flex overflow-hidden rounded-md border border-border" role="group" aria-label="Time range">
+                                {/* QX-008 step 6: the buttons and the Grafana row wrap at phone width (the page scrolled sideways at 375 px) */}
+                                <div className="mt-2 inline-flex max-w-full flex-wrap overflow-hidden rounded-md border border-border" role="group" aria-label="Time range">
                                     {RANGES.map((r) => (
                                         <button
                                             key={r.id}
@@ -443,7 +444,7 @@ const QServicePerformance = () => {
                                     ))}
                                 </div>
                             </div>
-                            <div className="flex items-center gap-3">
+                            <div className="flex min-w-0 flex-wrap items-center gap-3">
                                 <PartnersTorus total={partnerStats.total} ready={partnerStats.ready} />
                                 <a
                                     href={`https://${window.location.hostname}:4000`}
